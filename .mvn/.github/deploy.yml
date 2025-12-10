@@ -1,0 +1,96 @@
+name: Build and Deploy Spring Boot to Azure VM
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      VM_IP: ${{ secrets.VM_IP }}
+      MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+      MYSQL_USER: ${{ secrets.MYSQL_USER }}
+      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+      MYSQL_PORT: 3306
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y maven openjdk-17-jdk mysql-client jq
+
+      - name: Update application.yml
+        run: |
+          sed -i "s|\${MYSQL_HOST}|${{ env.MYSQL_HOST }}|g" src/main/resources/application.yml
+          sed -i "s|\${MYSQL_PORT}|${{ env.MYSQL_PORT }}|g" src/main/resources/application.yml
+          sed -i "s|\${MYSQL_USER}|${{ env.MYSQL_USER }}|g" src/main/resources/application.yml
+          sed -i "s|\${MYSQL_PASSWORD}|${{ env.MYSQL_PASSWORD }}|g" src/main/resources/application.yml
+
+      # 🧠 Subir schema.sql a la VM
+      - name: Copy schema.sql to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.VM_IP }}
+          username: adminuser
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "db/mysql/schema.sql"
+          target: "/home/adminuser/"
+
+      # 🧠 Ejecutar schema.sql en MySQL Flexible Server
+      - name: Run SQL script
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ env.VM_IP }}
+          username: adminuser
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            sudo apt update && sudo apt install -y mysql-client
+            echo "Ejecutando schema.sql..."
+            mysql -h "${{ env.MYSQL_HOST }}" \
+                  -u "${{ env.MYSQL_USER }}" \
+                  -p"${{ env.MYSQL_PASSWORD }}" \
+                  < /home/adminuser/schema.sql
+
+      # 🧱 Compilar la aplicación
+      - name: Build Spring Boot JAR
+        run: mvn clean package -DskipTests
+
+      # 🚀 Copiar JAR a la VM
+      - name: Copy JAR to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.VM_IP }}
+          username: adminuser
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "target/teachers-0.0.1-SNAPSHOT.jar"
+          target: "/home/adminuser/"
+
+      # 🔥 Instalar Java, abrir puertos
+      - name: Prepare VM
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ env.VM_IP }}
+          username: adminuser
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            sudo apt update
+            sudo apt install -y openjdk-17-jre-headless
+            sudo ufw allow 22/tcp
+            sudo ufw allow 8080/tcp
+            sudo ufw --force enable
+
+      # 🏃 Ejecutar aplicación en segundo plano
+      - name: Run Spring Boot App
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ env.VM_IP }}
+          username: adminuser
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Iniciando aplicación Spring Boot..."
+            nohup java -jar /home/adminuser/teachers-0.0.1-SNAPSHOT.jar > /home/adminuser/app.log 2>&1 &
