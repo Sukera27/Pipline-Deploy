@@ -41,7 +41,7 @@ jobs:
           host: ${{ env.VM_IP }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "target/teachers-0.0.1-SNAPSHOT.jar"
+          source: "target/Tienda-0.0.1-SNAPSHOT.jar"
           target: "/home/adminuser/"
 
       # 🔥 Instalar Java, abrir puertos
