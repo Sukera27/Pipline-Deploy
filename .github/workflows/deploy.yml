@@ -44,6 +44,7 @@ jobs:
           port: 22
           source: "target/Tienda-0.0.1-SNAPSHOT.jar"
           target: "/home/azureuser/"
+          strip_components: 1    # <- elimina la carpeta target
           overwrite: true
           debug: true
 
@@ -70,4 +71,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "Iniciando aplicación Spring Boot..."
-            nohup java -jar /home/azureuser/deploy/Tienda-0.0.1-SNAPSHOT.jar > /home/azureuser/deploy/app.log 2>&1 &
+            nohup java -jar /home/azureuser/Tienda-0.0.1-SNAPSHOT.jar > /home/azureuser/app.log 2>&1 &
