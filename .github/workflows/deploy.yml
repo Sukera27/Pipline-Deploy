@@ -41,10 +41,13 @@ jobs:
           host: ${{ env.VM_IP }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
           source: "target/Tienda-0.0.1-SNAPSHOT.jar"
-          target: "/home/adminuser/"
+          target: "/home/azureuser/deploy/"
+          overwrite: true
+          debug: true
 
-      # 🔥 Instalar Java, abrir puertos
+      # 🔥 Preparar VM: instalar Java y abrir puertos
       - name: Prepare VM
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -67,4 +70,4 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "Iniciando aplicación Spring Boot..."
-            nohup java -jar /home/adminuser/teachers-0.0.1-SNAPSHOT.jar > /home/adminuser/app.log 2>&1 &
+            nohup java -jar /home/azureuser/deploy/Tienda-0.0.1-SNAPSHOT.jar > /home/azureuser/deploy/app.log 2>&1 &
