@@ -34,17 +34,16 @@ jobs:
       - name: Build Spring Boot JAR
         run: mvn clean package -DskipTests
 
-      #  Copiar el JAR a la VM directamente a /home/azureuser/deploy/
+      # 🚀 Copiar JAR a la VM
       - name: Copy JAR to VM
         uses: appleboy/scp-action@v0.1.7
-        with:   
+        with:
           host: ${{ env.VM_IP }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           source: "target/Tienda-0.0.1-SNAPSHOT.jar"
-          target: "/home/azureuser/deploy/"
-          strip_components: 1        # Elimina la carpeta target al copiar
+          target: "/home/azureuser/"
           overwrite: true
           debug: true
 
