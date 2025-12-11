@@ -30,11 +30,11 @@ jobs:
           sed -i "s|\${MYSQL_USER}|${{ env.MYSQL_USER }}|g" src/main/resources/application.yml
           sed -i "s|\${MYSQL_PASSWORD}|${{ env.MYSQL_PASSWORD }}|g" src/main/resources/application.yml
 
-      # 🧱 Compilar la aplicación
+      # Compilar la aplicación
       - name: Build Spring Boot JAR
         run: mvn clean package -DskipTests
 
-      # 🚀 Copiar JAR a la VM
+      #  Copiar JAR a la VM
       - name: Copy JAR to VM
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -44,11 +44,11 @@ jobs:
           port: 22
           source: "target/Tienda-0.0.1-SNAPSHOT.jar"
           target: "/home/azureuser/"
-          strip_components: 1    # <- elimina la carpeta target
+          strip_components: 1    # <- elimina la carpeta target 
           overwrite: true
           debug: true
 
-      # 🔥 Preparar VM: instalar Java y abrir puertos
+      # Preparar VM: instalar Java y abrir puertos
       - name: Prepare VM
         uses: appleboy/ssh-action@v0.1.6
         with:
@@ -62,7 +62,7 @@ jobs:
             sudo ufw allow 8080/tcp
             sudo ufw --force enable
 
-      # 🏃 Ejecutar aplicación en segundo plano
+      # Ejecutar aplicación en segundo plano
       - name: Run Spring Boot App
         uses: appleboy/ssh-action@v0.1.6
         with:
