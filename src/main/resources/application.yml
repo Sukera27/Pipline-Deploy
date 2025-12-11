@@ -1,13 +1,16 @@
 spring:
   application:
     name: Producto
+
   profiles:
-    active: local
+    active: prod
+
   datasource:
-    url: jdbc:mysql://localhost:3306/Tiendadb?createDatabaseIfNotExist=true&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
-    username: root
-    password: Claroquesi
+    url: jdbc:mysql://${MYSQL_HOST}:3306/Tiendadb?createDatabaseIfNotExist=true&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
   jpa:
     hibernate:
       ddl-auto: none
